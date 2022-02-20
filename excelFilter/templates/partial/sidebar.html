@@ -1,0 +1,19 @@
+<nav id="sidebar">
+	<!-- Sidebar Header-->
+	<div class="sidebar-header d-flex align-items-center">
+		<div class="avatar"><img src="/static/img/user-icon.png" alt="..." class="img-fluid rounded-circle"></div>
+		<div class="title">
+			<h1 class="h5">AAAngelo</h1>
+			<p>Web Designer</p>
+		</div>
+	</div>
+	<!-- Sidebar Navidation Menus--><span class="heading">Main</span>
+	<ul class="list-unstyled">
+		<li class="{{dashboard_active}}"><a href="{% url 'dashboard:index' %}"> <i class="icon-home"></i>Dashboard </a></li>
+<!--		<li class="{{all_active}}"><a href="{% url 'dashboard:generic-view' 'all' %}"> <i class="icon-grid"></i>All </a></li>-->
+		<li class="{{followup_active}}"><a href="{% url 'dashboard:generic-view' 'email-followup' %}"> <i class="icon-padnote"></i>For Followup </a></li>
+		<li class="{{for_file_active}}"><a href="{% url 'dashboard:generic-view' 'email-file' %}"> <i class="fa fa-bar-chart"></i>For File </a></li>
+		<li class="{{initial_active}}"><a href="{% url 'dashboard:generic-view' 'email-initial' %}"> <i class="icon-grid"></i>Initial </a></li>
+		<li class="{{email_replies_active}}"><a href="{% url 'dashboard:generic-view' 'email-replies' %}"> <i class="icon-padnote"></i>Email Replies </a></li>
+	</ul>
+</nav>

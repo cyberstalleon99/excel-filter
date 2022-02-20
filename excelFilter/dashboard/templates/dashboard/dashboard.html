@@ -1,0 +1,57 @@
+{% extends 'base-site.html' %}
+{% block title %} Dashboard {% endblock %}
+{% block subtitle %} Dashboard {% endblock %}
+{% load custom_tags %}
+
+{% block content %}
+<section class="no-padding-top no-padding-bottom">
+	<div class="container-fluid">
+		<h1>Today</h1>
+		<p>(Based on Date Evaluated or Date Encoded and AO/E-SENDER/DATA ENCODER or Evaluator/Sender/ Encoder)</p>
+		<div class="row">
+			{% for key, rows in dashboard_overall_summary_today.items %}
+			<div class="col-md-3 col-sm-6">
+				<div class="statistic-block block">
+					<div class="progress-details d-flex align-items-end justify-content-between">
+						<div class="title">
+							<div class="icon"><i class="icon-paper-and-pencil"></i></div><strong>{{key}}</strong>
+						</div>
+						<div class="number dashtext-{{forloop.counter}}">{{rows|length}}</div>
+					</div>
+					<div class="progress progress-template">
+						<div role="progressbar" style="width: 55%" aria-valuenow="55" aria-valuemin="0" aria-valuemax="100" class="progress-bar progress-bar-template dashbg-{{forloop.counter}}"></div>
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+
+		</div>
+	</div>
+</section>
+<section class="no-padding-bottom">
+	<div class="container-fluid">
+		<div class="row">
+			{% for key, values in dashboard_controller_summary_today.items %}
+			<div class="col-lg-4">
+				<div class="user-block block text-center">
+					<div class="avatar"><img src="/static/img/user-icon.png" alt="..." class="img-fluid">
+						<div class="order dashbg-2">{{forloop.counter}}</div>
+					</div><a href="#" class="user-title">
+					<h3 class="h5">{{values.0.2}}</h3><span>{{values.0.3}}</span></a>
+
+					<div class="contributions">{{forloop.counter|listvalue:controller_total_today}} Contributions</div>
+					<div class="details d-flex">
+						{% for key, file_rows in values.1.items %}
+						<div class="item"><i class="icon-info" title="{{key|upper}}"></i><strong>{{file_rows|length}}</strong></div>
+						{% endfor %}
+<!--						<div class="item"><i class="fa fa-gg"></i><strong>340</strong></div>-->
+<!--						<div class="item"><i class="icon-flow-branch"></i><strong>460</strong></div>-->
+<!--						<div class="item"><i class="fa fa-gg"></i><strong>340</strong></div>-->
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+</section>
+{% endblock %}

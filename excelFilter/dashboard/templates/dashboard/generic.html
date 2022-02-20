@@ -1,0 +1,195 @@
+{% extends 'base-site.html' %}
+{% block title %} {{ page_title }} {% endblock %}
+{% block subtitle %} {{ sub_title }} {% endblock %}
+
+{% load custom_tags %}
+{% block content %}
+<section class="no-padding-top">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-lg-12">
+				<!-- Initial Table-->
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="block">
+							<div class="title">
+								<div class="row">
+									<div class="col-md-4">
+										<strong>{{ page_title }}</strong>
+									</div>
+									<div class="col-sm-4 text-center">
+									</div>
+									<div class="col-md-4 text-right">
+										<h1 id="resultCount" class="d-block number dashtext-1" style="margin-right: 25px">Result Count Placeholder</h1>
+									</div>
+								</div>
+							</div>
+							<div class="block-body">
+								<div class="content">
+									<div class="row">
+										<div class="col-6">
+											<div class="btn-group submitter-group">
+												<div class="input-group-prepend">
+													{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
+													<div class="input-group-text">AO/E-SENDER/DATA ENCODER</div>
+													{% else %}
+													<div class="input-group-text">Evaluator/Sender/ Encoder</div>
+													{% endif %}
+												</div>
+												<select class="form-control remarks-dropdown">
+													<option value="">All</option>
+													{% for controller in data_controller_list %}
+													<option value="{{controller.0}}">{{controller.0}} - {{controller.1}}</option>
+													{% endfor %}
+												</select>
+											</div>
+											{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
+											<div class="btn-group submitter-group">
+												<div class="input-group-prepend filter-checkbox">
+													<div class="input-group-text">Nature/Concern</div>
+												</div>
+												<select class="form-control nature-dropdown">
+													<option value="">All</option>
+													{% for type in nature_or_concern_list %}
+													<option value="{{type}}">{{type}}</option>
+													{% endfor %}
+												</select>
+											</div>
+											{% endif %}
+										</div>
+										<div class="col-6">
+											<div class="btn-group submitter-group float-right">
+												<input id="resetButton" type="button" value="Reset Filters" class="btn btn-primary">
+											</div>
+											<div class="btn-group submitter-group float-right">
+												<div class="input-group-prepend">
+													{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
+													<div class="input-group-text">Date Evaluated</div>
+													{% else %}
+													<div class="input-group-text">Date Encoded</div>
+													{% endif %}
+												</div>
+												<input class="form-control" type="date" id="dateEvaluated">
+											</div>
+											{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
+											<div class="btn-group submitter-group float-right">
+												<div class="input-group-prepend">
+													<div class="input-group-text">Date of Email</div>
+												</div>
+												<input class="form-control" type="date" id="dateOfEmail">
+											</div>
+											{% endif %}
+										</div>
+									</div>
+								</div>
+								<div class="table-responsive">
+									<table id="genericDataTable" class="table table-striped table-sm">
+										<thead>
+										<tr>
+											{% for col in cols %}
+											<th>{{ col }}</th>
+											{% endfor %}
+										</tr>
+										</thead>
+										<tbody>
+										{% for row in rows %}
+										<tr>
+											{% for cell in row %}
+											{% if forloop.counter <= cols|length%}
+											{% if forloop.counter in date_fields %}
+											<td>{{ cell|date:"Y/m/d" }}</td>
+											{% else %}
+											<td>{{ cell }}</td>
+											{% endif %}
+											{% endif %}
+											{% endfor %}
+										</tr>
+										{% endfor %}
+										</tbody>
+									</table>
+								</div>
+								<br>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</section>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function () {
+    dataTable = $('#genericDataTable').DataTable({
+        'processing': true,
+        'searching': true,
+        "lengthMenu": [25, 50, 75, 100 ],
+        "drawCallback": function( settings ) {
+	        var api = this.api();
+	        updateResultCount($('#resultCount'), api.page.info().recordsDisplay);
+	    },
+        dom: 'B<fl<t>ip>',
+
+        buttons: {
+           name: 'primary',
+           buttons: ['copy', 'csv', 'excel', 'pdf']
+       },
+    });
+
+	var $remarksDropdown =  $('.remarks-dropdown');
+	var $natureDropdown =  $('.nature-dropdown');
+	var $dateOfEmail = $('#dateOfEmail')
+	var $dateEvaluated = $('#dateEvaluated');
+
+	$remarksDropdown.on('change', function(e){
+		var status = $(this).val();
+		$remarksDropdown.val(status);
+		dataTable.column({{filter_columns.REMARKS_COL}} - 1).search(status).draw();
+	});
+
+	$natureDropdown.on('change', function(e){
+		var status = $(this).val();
+		$natureDropdown.val(status);
+		dataTable.column({{filter_columns.NATURE_OR_CONCERN_COL}} - 1).search(status).draw();
+	});
+
+    $dateOfEmail.on('change', function () {
+        dateOfEmailColumn = {{filter_columns.DATE_OF_EMAIL_COL}} - 1; // Date of Email Column
+        if ($dateOfEmail.val()) {
+            var dateOfEmail = formatDate(new Date($(this).val()));
+            dataTable.column(dateOfEmailColumn).search(dateOfEmail).draw();
+        } else {
+            dataTable.column(dateOfEmailColumn).search('').draw();
+        }
+    });
+
+    $dateEvaluated.on('change', function () {
+        if ({{filter_columns.DATE_EVALUATED_COL}} != 0) {
+            dateEvaluatedColumn = {{filter_columns.DATE_EVALUATED_COL}} - 1; // Date Evaluated Column
+        } else {
+            dateEvaluatedColumn = {{filter_columns.DATE_ENCODED_COL}} - 1; // Date Evaluated Column
+        }
+
+
+        if ($dateEvaluated.val()) {
+            var dateEvaluated = formatDate(new Date($(this).val()));
+            dataTable.column(dateEvaluatedColumn).search(dateEvaluated).draw();
+        } else {
+            dataTable.column(dateEvaluatedColumn).search('').draw();
+        }
+    });
+
+    $( "#resetButton" ).click(function() {
+		$remarksDropdown.val("").change();
+		if ($natureDropdown) {$natureDropdown.val("").change();}
+		if ($dateOfEmail) {$dateOfEmail.val("").change();}
+		$dateEvaluated.val("").change();
+	});
+
+});
+</script>
+{% endblock %}
+
