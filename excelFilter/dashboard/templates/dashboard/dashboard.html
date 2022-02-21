@@ -34,7 +34,7 @@
 			{% for key, values in dashboard_controller_summary_today.items %}
 			<div class="col-lg-4">
 				<div class="user-block block text-center">
-					<div class="avatar"><img src="/static/img/user-icon.png" alt="..." class="img-fluid">
+					<div class="avatar"><img src="/static/img/{{values.0.4}}" alt="..." class="img-fluid">
 						<div class="order dashbg-2">{{forloop.counter}}</div>
 					</div><a href="#" class="user-title">
 					<h3 class="h5">{{values.0.2}}</h3><span>{{values.0.3}}</span></a>
@@ -42,7 +42,12 @@
 					<div class="contributions">{{forloop.counter|listvalue:controller_total_today}} Contributions</div>
 					<div class="details d-flex">
 						{% for key, file_rows in values.1.items %}
-						<div class="item"><i class="icon-info" title="{{key|upper}}"></i><strong>{{file_rows|length}}</strong></div>
+						<div class="item">
+							<button type="button" class="btn {{key|button_style:key}}">
+							  {{key|file_display_name:key}} <span class="badge badge-light">{{file_rows|length}}</span>
+							</button>
+						</div>
+
 						{% endfor %}
 <!--						<div class="item"><i class="fa fa-gg"></i><strong>340</strong></div>-->
 <!--						<div class="item"><i class="icon-flow-branch"></i><strong>460</strong></div>-->

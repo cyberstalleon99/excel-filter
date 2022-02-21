@@ -36,7 +36,7 @@
 													<div class="input-group-text">Evaluator/Sender/ Encoder</div>
 													{% endif %}
 												</div>
-												<select class="form-control remarks-dropdown">
+												<select class="form-control ao-esender-data-encoder-dropdown">
 													<option value="">All</option>
 													{% for controller in data_controller_list %}
 													<option value="{{controller.0}}">{{controller.0}} - {{controller.1}}</option>
@@ -139,14 +139,14 @@ $(document).ready(function () {
        },
     });
 
-	var $remarksDropdown =  $('.remarks-dropdown');
+	var $ao_esender_data_encoder_dropdown =  $('.ao-esender-data-encoder-dropdown');
 	var $natureDropdown =  $('.nature-dropdown');
 	var $dateOfEmail = $('#dateOfEmail')
 	var $dateEvaluated = $('#dateEvaluated');
 
-	$remarksDropdown.on('change', function(e){
+	$ao_esender_data_encoder_dropdown.on('change', function(e){
 		var status = $(this).val();
-		$remarksDropdown.val(status);
+		$ao_esender_data_encoder_dropdown.val(status);
 		dataTable.column({{filter_columns.REMARKS_COL}} - 1).search(status).draw();
 	});
 
@@ -173,7 +173,6 @@ $(document).ready(function () {
             dateEvaluatedColumn = {{filter_columns.DATE_ENCODED_COL}} - 1; // Date Evaluated Column
         }
 
-
         if ($dateEvaluated.val()) {
             var dateEvaluated = formatDate(new Date($(this).val()));
             dataTable.column(dateEvaluatedColumn).search(dateEvaluated).draw();
@@ -183,7 +182,7 @@ $(document).ready(function () {
     });
 
     $( "#resetButton" ).click(function() {
-		$remarksDropdown.val("").change();
+		$ao_esender_data_encoder_dropdown.val("").change();
 		if ($natureDropdown) {$natureDropdown.val("").change();}
 		if ($dateOfEmail) {$dateOfEmail.val("").change();}
 		$dateEvaluated.val("").change();

@@ -113,10 +113,10 @@ NATURE_OR_CONCERN_LIST = [
 ]
 
 DATA_CONTROLLER_LIST = [
-    # [INITIALS,    INITIAL_WITH_LASTNAME,      FULLNAME,               DESIGNATION]
-    ['AAA',         'AAAngelo',                 'Andrew A. Angelo',     'Officer 1'],
-    ['BBB',         'BBBlue',                   'Bon B. Blue',          'Officer 2'],
-    ['CCC',         'CCChocolate',              'Cherry C. Chocolate',  'Officer 3'],
-    ['DDD',         'DDDarrymore',              'Drew D. Darrymore',    'Officer 4'],
+    # [INITIALS,    INITIAL_WITH_LASTNAME,      FULLNAME,               DESIGNATION],       PROFILE_PIC
+    ['AAA',         'AAAngelo',                 'Andrew A. Angelo',     'Officer 1',        'AAA.jpg'],
+    ['BBB',         'BBBlue',                   'Bon B. Blue',          'Officer 2',        'BBB.jpg'],
+    ['CCC',         'CCChocolate',              'Cherry C. Chocolate',  'Officer 3',        'CCC.jpg'],
+    ['DDD',         'DDDarrymore',              'Drew D. Darrymore',    'Officer 4',        'DDD.jpg'],
 ]
 
