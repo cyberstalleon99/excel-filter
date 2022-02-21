@@ -43,9 +43,9 @@
 					<div class="details d-flex">
 						{% for key, file_rows in values.1.items %}
 						<div class="item">
-							<button type="button" class="btn {{key|button_style:key}}">
+							<a type="button" class="btn btn-dark" data-toggle="modal" data-target="#myModal">
 							  {{key|file_display_name:key}} <span class="badge badge-light">{{file_rows|length}}</span>
-							</button>
+							</a>
 						</div>
 
 						{% endfor %}
