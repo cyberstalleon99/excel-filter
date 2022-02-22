@@ -13,7 +13,7 @@ config_map = {
     'email-replies': config.EMAIL_REPLIES_CONFIG,
 }
 
-def get_file_data(menu_slug):
+def get_file_data(request, menu_slug):
     file_data = {}
     file_config = config_map[menu_slug]
     if menu_slug == 'email-followup':
@@ -28,22 +28,51 @@ def get_file_data(menu_slug):
     elif menu_slug == 'email-replies':
         file_data['rows'] = _get_data('D.xlsx', file_config['DATA_START_ROW'], file_config['NON_EMPTY_COL'])
         file_data['cols'] = file_config['TABLE_COLUMNS']
+    post_params = get_post_params(request)
+    if request.method == 'POST':
+        if request.POST.get('from-daterange-2') is not None and request.POST.get('to-daterange-2') is not None:
+            file_data_from_daterange_1 = get_filedata_from_daterange(post_params[0][0], post_params[0][1], file_data,
+                                                                     file_config['FILTER_FIELDS']['DATE_OF_EMAIL_COL'])
+
+            file_data_from_daterange_2 = get_filedata_from_daterange(post_params[1][0], post_params[1][1], file_data_from_daterange_1,
+                                                                     file_config['FILTER_FIELDS']['DATE_EVALUATED_COL'])
+            file_data = file_data_from_daterange_2
+        else:
+            file_data_from_daterange_1 = get_filedata_from_daterange(post_params[0][0], post_params[0][1], file_data,
+                                                                     file_config['FILTER_FIELDS']['DATE_ENCODED_COL'])
+            file_data = file_data_from_daterange_1
     return file_data
 
-def update_context(menu_slug, context):
-    file_data = get_file_data(menu_slug)
+# date_field: DATE_OF_EMAIL_COL or DATE_EVALUATED_COL
+def get_filedata_from_daterange(from_date, to_date, file_data, date_field_col):
+    file_data_rows = file_data['rows']
+    rows_from_daterange = []
+    if from_date and to_date:
+        from_date = datetime.strptime(from_date, '%Y-%m-%d').date()
+        to_date = datetime.strptime(to_date, '%Y-%m-%d').date()
+        for row in file_data_rows:
+            _date = row[date_field_col - 1].date()
+            if from_date <= _date <= to_date:
+                rows_from_daterange.append(row)
+        file_data['rows'] = rows_from_daterange
+    return file_data
+
+def update_context(request, menu_slug, context):
+    file_data = get_file_data(request, menu_slug)
+    post_params = get_post_params(request)
     context['rows'] = file_data['rows']
     context['cols'] = file_data['cols']
     context['data_controller_list'] = config.DATA_CONTROLLER_LIST
     context['nature_or_concern_list'] = config.NATURE_OR_CONCERN_LIST
     context['filter_columns'] = _get_filter_columns(menu_slug)
+    context['post_params'] = post_params
     return context
 
-def get_dashboard_overall_summary_today():
+def get_dashboard_overall_summary_today(request):
     dashboard_summary = {}
     for key, file_config in config_map.items():
         today_rows = []
-        rows = get_file_data(key)['rows']
+        rows = get_file_data(request, key)['rows']
         if key == 'email-replies':
             date_col = file_config['FILTER_FIELDS']['DATE_ENCODED_COL'] - 1
         else:
@@ -54,7 +83,7 @@ def get_dashboard_overall_summary_today():
         dashboard_summary[key] = today_rows
     return dashboard_summary
 
-def get_dashboard_controller_summary_today():
+def get_dashboard_controller_summary_today(request):
 
     # structure = {
     #       'AAA': [[controller_info], {
@@ -71,7 +100,7 @@ def get_dashboard_controller_summary_today():
     #       }]
     # }
     controller_overall_summary_today = {}
-    dashboard_summary = get_dashboard_overall_summary_today()
+    dashboard_summary = get_dashboard_overall_summary_today(request)
     for controller in config.DATA_CONTROLLER_LIST:
         controller_initials = controller[0]
         controller_summary = {}
@@ -90,8 +119,8 @@ def get_dashboard_controller_summary_today():
         controller_overall_summary_today[controller_initials] = [controller, controller_summary]
     return controller_overall_summary_today
 
-def get_controller_total_today():
-    temp = get_dashboard_controller_summary_today()
+def get_controller_total_today(request):
+    temp = get_dashboard_controller_summary_today(request)
     sums = []
     _sum = ''
     for key, values in temp.items():
@@ -100,6 +129,24 @@ def get_controller_total_today():
             _sum += len(file_rows)
         sums.append(_sum)
     return sums
+
+def get_post_params(request):
+    from_daterange_1 = request.POST.get('from-daterange-1')
+    to_daterange_1 = request.POST.get('to-daterange-1')
+    from_daterange_2 = request.POST.get('from-daterange-2')
+    to_daterange_2 = request.POST.get('to-daterange-2')
+
+    if not from_daterange_1 and to_daterange_1:
+        from_daterange_1 = to_daterange_1
+    elif from_daterange_1 and not to_daterange_1:
+        to_daterange_1 = from_daterange_1
+
+    if not from_daterange_2 and to_daterange_2:
+        from_daterange_2 = to_daterange_2
+    elif from_daterange_2 and not to_daterange_2:
+        to_daterange_2 = from_daterange_2
+
+    return [[from_daterange_1, to_daterange_1], [from_daterange_2, to_daterange_2]]
 
 # PRIVATE METHODS
 

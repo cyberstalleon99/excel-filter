@@ -19,6 +19,75 @@
 									</div>
 									<div class="col-sm-4 text-center">
 									</div>
+								</div>
+							</div>
+							<div class="block-body">
+								<div class="content">
+									<form method="POST">
+										{% csrf_token %}
+										<div class="row">
+											<div class="col-5">
+												{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
+												<h3>Date of Email</h3>
+												{% else %}
+												<h3>Date Encoded</h3>
+												{% endif %}
+												<div class="btn-group submitter-group">
+													<div class="input-group-prepend">
+														<div class="input-group-text">From</div>
+													</div>
+													<input name="from-daterange-1" class="form-control" type="date" value="{{post_params.0.0}}">
+												</div>
+												<div class="btn-group submitter-group">
+													<div class="input-group-prepend">
+														<div class="input-group-text">To</div>
+													</div>
+													<input name="to-daterange-1" class="form-control" type="date"value="{{post_params.0.1}}">
+												</div>
+											</div>
+											{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
+											<div class="col-5">
+												<h3>Date Evaluated</h3>
+												<div class="btn-group submitter-group">
+													<div class="input-group-prepend">
+														<div class="input-group-text">From</div>
+													</div>
+													<input name="from-daterange-2" class="form-control" type="date"value="{{post_params.1.0}}">
+												</div>
+												<div class="btn-group submitter-group">
+													<div class="input-group-prepend">
+														<div class="input-group-text">To</div>
+													</div>
+													<input name="to-daterange-2" class="form-control" type="date"value="{{post_params.1.1}}">
+												</div>
+											</div>
+											{% endif %}
+											<div class="col-2">
+												<h3>Search</h3>
+												<div class="btn-group submitter-group">
+													<input type="submit" value="Search" class="btn btn-primary">
+												</div>
+												<div class="btn-group submitter-group">
+													<input id="resetButton" type="button" value="Reset" class="btn btn-secondary">
+												</div>
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="block">
+							<div class="title">
+								<div class="row">
+									<div class="col-md-4">
+										<strong>{{ page_title }}</strong>
+									</div>
+									<div class="col-sm-4 text-center">
+									</div>
 									<div class="col-md-4 text-right">
 										<h1 id="resultCount" class="d-block number dashtext-1" style="margin-right: 25px">Result Count Placeholder</h1>
 									</div>
@@ -58,27 +127,6 @@
 											{% endif %}
 										</div>
 										<div class="col-6">
-											<div class="btn-group submitter-group float-right">
-												<input id="resetButton" type="button" value="Reset Filters" class="btn btn-primary">
-											</div>
-											<div class="btn-group submitter-group float-right">
-												<div class="input-group-prepend">
-													{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
-													<div class="input-group-text">Date Evaluated</div>
-													{% else %}
-													<div class="input-group-text">Date Encoded</div>
-													{% endif %}
-												</div>
-												<input class="form-control" type="date" id="dateEvaluated">
-											</div>
-											{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
-											<div class="btn-group submitter-group float-right">
-												<div class="input-group-prepend">
-													<div class="input-group-text">Date of Email</div>
-												</div>
-												<input class="form-control" type="date" id="dateOfEmail">
-											</div>
-											{% endif %}
 										</div>
 									</div>
 								</div>
@@ -97,7 +145,7 @@
 											{% for cell in row %}
 											{% if forloop.counter <= cols|length%}
 											{% if forloop.counter in date_fields %}
-											<td>{{ cell|date:"Y/m/d" }}</td>
+											<td>{{ cell|date:"M d, Y" }}</td>
 											{% else %}
 											<td>{{ cell }}</td>
 											{% endif %}
