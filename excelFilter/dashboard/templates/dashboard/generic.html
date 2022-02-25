@@ -27,11 +27,7 @@
 										{% csrf_token %}
 										<div class="row">
 											<div class="col-5">
-												{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
 												<h3>Date of Email</h3>
-												{% else %}
-												<h3>Date Encoded</h3>
-												{% endif %}
 												<div class="btn-group submitter-group">
 													<div class="input-group-prepend">
 														<div class="input-group-text">From</div>
@@ -45,9 +41,12 @@
 													<input name="to-daterange-1" class="form-control" type="date"value="{{post_params.0.1}}">
 												</div>
 											</div>
-											{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
 											<div class="col-5">
+												{% if filter_columns.DATE_EVALUATED_COL %}
 												<h3>Date Evaluated</h3>
+												{% else %}
+												<h3>Date Encoded</h3>
+												{% endif %}
 												<div class="btn-group submitter-group">
 													<div class="input-group-prepend">
 														<div class="input-group-text">From</div>
@@ -61,15 +60,9 @@
 													<input name="to-daterange-2" class="form-control" type="date"value="{{post_params.1.1}}">
 												</div>
 											</div>
-											{% endif %}
 											<div class="col-2">
 												<h3>Search</h3>
-												<div class="btn-group submitter-group">
-													<input type="submit" value="Search" class="btn btn-primary">
-												</div>
-												<div class="btn-group submitter-group">
-													<input id="resetButton" type="button" value="Reset" class="btn btn-secondary">
-												</div>
+												<button type="submit" class="btn btn-primary btn-block">Search</button>
 											</div>
 										</div>
 									</form>
@@ -99,10 +92,10 @@
 										<div class="col-6">
 											<div class="btn-group submitter-group">
 												<div class="input-group-prepend">
-													{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
-													<div class="input-group-text">AO/E-SENDER/DATA ENCODER</div>
-													{% else %}
+													{% if filter_columns.EVALUATOR_OR_SENDER_ENCODER %}
 													<div class="input-group-text">Evaluator/Sender/ Encoder</div>
+													{% else %}
+													<div class="input-group-text">AO/E-SENDER/DATA ENCODER</div>
 													{% endif %}
 												</div>
 												<select class="form-control ao-esender-data-encoder-dropdown">
@@ -112,7 +105,7 @@
 													{% endfor %}
 												</select>
 											</div>
-											{% if filter_columns.DATE_OF_EMAIL_COL or filter_columns.DATE_EVALUATED_COL %}
+											{% if filter_columns.NATURE_OR_CONCERN_COL %}
 											<div class="btn-group submitter-group">
 												<div class="input-group-prepend filter-checkbox">
 													<div class="input-group-text">Nature/Concern</div>
@@ -121,6 +114,19 @@
 													<option value="">All</option>
 													{% for type in nature_or_concern_list %}
 													<option value="{{type}}">{{type}}</option>
+													{% endfor %}
+												</select>
+											</div>
+											{% endif %}
+											{% if filter_columns.REFERRED_TO_AGENCY_COL %}
+											<div class="btn-group submitter-group">
+												<div class="input-group-prepend filter-checkbox">
+													<div class="input-group-text">Referred to Agency</div>
+												</div>
+												<select class="form-control agency-dropdown">
+													<option value="">All</option>
+													{% for agency in referred_to_agency_list %}
+													<option value="{{agency}}">{{agency}}</option>
 													{% endfor %}
 												</select>
 											</div>
@@ -143,13 +149,17 @@
 										{% for row in rows %}
 										<tr>
 											{% for cell in row %}
-											{% if forloop.counter <= cols|length%}
-											{% if forloop.counter in date_fields %}
-											<td>{{ cell|date:"M d, Y" }}</td>
-											{% else %}
-											<td>{{ cell }}</td>
-											{% endif %}
-											{% endif %}
+												{% if forloop.counter <= cols|length %}
+													{% if cell == None %}
+														<td></td>
+													{% else %}
+														{% if forloop.counter in date_fields %}
+														<td>{{ cell|date:"M d, Y" }}</td>
+														{% else %}
+														<td>{{ cell }}</td>
+														{% endif %}
+													{% endif %}
+												{% endif %}
 											{% endfor %}
 										</tr>
 										{% endfor %}
@@ -189,19 +199,26 @@ $(document).ready(function () {
 
 	var $ao_esender_data_encoder_dropdown =  $('.ao-esender-data-encoder-dropdown');
 	var $natureDropdown =  $('.nature-dropdown');
+	var $agencyDropdown =  $('.agency-dropdown');
 	var $dateOfEmail = $('#dateOfEmail')
 	var $dateEvaluated = $('#dateEvaluated');
 
 	$ao_esender_data_encoder_dropdown.on('change', function(e){
 		var status = $(this).val();
 		$ao_esender_data_encoder_dropdown.val(status);
-		dataTable.column({{filter_columns.REMARKS_COL}} - 1).search(status).draw();
+		dataTable.column({{filter_columns.AO_E_SENDER_DATA_ENCODER}} - 1).search(status).draw();
 	});
 
 	$natureDropdown.on('change', function(e){
 		var status = $(this).val();
 		$natureDropdown.val(status);
 		dataTable.column({{filter_columns.NATURE_OR_CONCERN_COL}} - 1).search(status).draw();
+	});
+
+	$agencyDropdown.on('change', function(e){
+		var status = $(this).val();
+		$agencyDropdown.val(status);
+		dataTable.column({{filter_columns.REFERRED_TO_AGENCY_COL}} - 1).search(status).draw();
 	});
 
     $dateOfEmail.on('change', function () {
@@ -230,10 +247,7 @@ $(document).ready(function () {
     });
 
     $( "#resetButton" ).click(function() {
-		$ao_esender_data_encoder_dropdown.val("").change();
-		if ($natureDropdown) {$natureDropdown.val("").change();}
-		if ($dateOfEmail) {$dateOfEmail.val("").change();}
-		$dateEvaluated.val("").change();
+		location.reload(true);
 	});
 
 });

@@ -16,31 +16,36 @@ config_map = {
 def get_file_data(request, menu_slug):
     file_data = {}
     file_config = config_map[menu_slug]
+    hidden_cols = file_config['HIDDEN_COLUMNS']
     if menu_slug == 'email-followup':
-        file_data['rows'] = _get_data('A.xlsx', file_config['DATA_START_ROW'], file_config['NON_EMPTY_COL'])
+        file_data['rows'] = _get_data('FOLLOW UP 2022.xlsx', file_config['DATA_START_ROW'], file_config['NON_EMPTY_COL'], hidden_cols)
         file_data['cols'] = file_config['TABLE_COLUMNS']
     elif menu_slug == 'email-file':
-        file_data['rows'] = _get_data('B.xlsx', file_config['DATA_START_ROW'], file_config['NON_EMPTY_COL'])
+        file_data['rows'] = _get_data('FOR FILE 2022.xlsx', file_config['DATA_START_ROW'], file_config['NON_EMPTY_COL'], hidden_cols)
         file_data['cols'] = file_config['TABLE_COLUMNS']
     elif menu_slug == 'email-initial':
-        file_data['rows'] = _get_data('C.xlsx', file_config['DATA_START_ROW'], file_config['NON_EMPTY_COL'])
+        file_data['rows'] = _get_data('INITIAL 2022.xlsx', file_config['DATA_START_ROW'], file_config['NON_EMPTY_COL'], hidden_cols)
         file_data['cols'] = file_config['TABLE_COLUMNS']
     elif menu_slug == 'email-replies':
-        file_data['rows'] = _get_data('D.xlsx', file_config['DATA_START_ROW'], file_config['NON_EMPTY_COL'])
+        file_data['rows'] = _get_data('REPLY 2022.xlsx', file_config['DATA_START_ROW'], file_config['NON_EMPTY_COL'], hidden_cols)
         file_data['cols'] = file_config['TABLE_COLUMNS']
     post_params = get_post_params(request)
     if request.method == 'POST':
-        if request.POST.get('from-daterange-2') is not None and request.POST.get('to-daterange-2') is not None:
+        if menu_slug == 'email-replies':
             file_data_from_daterange_1 = get_filedata_from_daterange(post_params[0][0], post_params[0][1], file_data,
                                                                      file_config['FILTER_FIELDS']['DATE_OF_EMAIL_COL'])
 
             file_data_from_daterange_2 = get_filedata_from_daterange(post_params[1][0], post_params[1][1], file_data_from_daterange_1,
-                                                                     file_config['FILTER_FIELDS']['DATE_EVALUATED_COL'])
+                                                                     file_config['FILTER_FIELDS']['DATE_ENCODED_COL'])
             file_data = file_data_from_daterange_2
         else:
             file_data_from_daterange_1 = get_filedata_from_daterange(post_params[0][0], post_params[0][1], file_data,
-                                                                     file_config['FILTER_FIELDS']['DATE_ENCODED_COL'])
-            file_data = file_data_from_daterange_1
+                                                                     file_config['FILTER_FIELDS']['DATE_OF_EMAIL_COL'])
+
+            file_data_from_daterange_2 = get_filedata_from_daterange(post_params[1][0], post_params[1][1],
+                                                                     file_data_from_daterange_1,
+                                                                     file_config['FILTER_FIELDS']['DATE_EVALUATED_COL'])
+            file_data = file_data_from_daterange_2
     return file_data
 
 # date_field: DATE_OF_EMAIL_COL or DATE_EVALUATED_COL
@@ -60,10 +65,12 @@ def get_filedata_from_daterange(from_date, to_date, file_data, date_field_col):
 def update_context(request, menu_slug, context):
     file_data = get_file_data(request, menu_slug)
     post_params = get_post_params(request)
+    context['menu_slug'] = menu_slug
     context['rows'] = file_data['rows']
     context['cols'] = file_data['cols']
     context['data_controller_list'] = config.DATA_CONTROLLER_LIST
     context['nature_or_concern_list'] = config.NATURE_OR_CONCERN_LIST
+    context['referred_to_agency_list'] = config.REFERRED_TO_AGENCY_LIST
     context['filter_columns'] = _get_filter_columns(menu_slug)
     context['post_params'] = post_params
     return context
@@ -110,10 +117,10 @@ def get_dashboard_controller_summary_today(request):
                 if key == 'email-replies':
                     controller_col = config_map[key]['FILTER_FIELDS']['EVALUATOR_OR_SENDER_ENCODER'] - 1
                 else:
-                    controller_col = config_map[key]['FILTER_FIELDS']['REMARKS_COL'] - 1
+                    controller_col = config_map[key]['FILTER_FIELDS']['AO_E_SENDER_DATA_ENCODER'] - 1
                 if controller_initials in _get_controller_list(row[controller_col]):
-                    print(key, controller_initials, row)
-                    print('--------------------------')
+                    # print(key, controller_initials, row)
+                    # print('--------------------------')
                     controller_rows.append(row)
             controller_summary[key] = controller_rows
         controller_overall_summary_today[controller_initials] = [controller, controller_summary]
@@ -151,7 +158,11 @@ def get_post_params(request):
 # PRIVATE METHODS
 
 def _get_controller_list(row_controller_str):
-    return row_controller_str.split('/')
+    row_controller_list = row_controller_str.split('/')
+    stripped_controller_list = []
+    for controller in row_controller_list:
+        stripped_controller_list.append(controller.strip())
+    return stripped_controller_list
 
 def _get_filter_columns(menu_slug):
     filter_columns = {}
@@ -171,13 +182,18 @@ def _get_active_sheet(xlsx_file):
     sheet = wb_obj.active
     return sheet
 
-def _get_data(file_name, data_row_start, non_empty_col):
+def _get_data(file_name, data_row_start, non_empty_col, hidden_cols):
     sheet = _get_active_sheet(file_name)
     rows = []
     for i, row in enumerate(sheet.iter_rows(values_only=True)):
         # Check if Value of Date of Email is not empty
-        if i >= data_row_start - 1 and sheet.cell(i + 1, non_empty_col).value is not None:
-            rows.append(row)
+        _i = data_row_start - 1
+        if i >= _i and sheet.cell(i + 1, non_empty_col).value is not None:
+            row_as_list = list(row)
+            for col in sorted(hidden_cols, reverse=True):
+                del row_as_list[col]
+
+            rows.append(tuple(row_as_list))
     return rows
 
 
